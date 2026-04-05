@@ -10,6 +10,7 @@ you can edit about anything
  it is important to replace theses lines :
  
   --- FILE PATHS ---
+  
  For exemple for me in my D drive
 ITEMS_GAME_PATH = r"D:\SteamLibrary\steamapps\common\csgo legacy\csgo\scripts\items\items_game.txt" <- where your items_game.txt is
 INVENTORY_PATH = r"D:\SteamLibrary\steamapps\common\csgo legacy\csgo_gc\inventory.txt" <- where your inventory is
