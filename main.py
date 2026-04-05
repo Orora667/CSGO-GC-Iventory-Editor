@@ -8,11 +8,11 @@ from flask import Flask, render_template_string, request, jsonify
 
 app = Flask(__name__)
 
-# --- FILE PATHS ---
+# Paths
 ITEMS_GAME_PATH = r"D:\SteamLibrary\steamapps\common\csgo legacy\csgo\scripts\items\items_game.txt"
 INVENTORY_PATH = r"D:\SteamLibrary\steamapps\common\csgo legacy\csgo_gc\inventory.txt"
 
-# --- HARDCODED WEAPON IDs (Bulletproof mapping) ---
+# Weapon ID mapping
 FALLBACK_DEF_INDEX = {
     "weapon_deagle": "1", "weapon_elite": "2", "weapon_fiveseven": "3", "weapon_glock": "4",
     "weapon_ak47": "7", "weapon_aug": "8", "weapon_awp": "9", "weapon_famas": "10",
@@ -56,7 +56,7 @@ def extract_items(data):
 
 def fetch_real_names():
     global API_SKINS, real_names_map, real_images_map, ALL_ITEMS_LIST, CATALOG
-    print("[*] Downloading full database (all.json) directly from API...")
+    print("Fetching API database...")
     url = "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/all.json"
     
     try:
@@ -77,7 +77,7 @@ def fetch_real_names():
                     real_names_map[parts[-1]] = api_name
                     if api_image: real_images_map[parts[-1]] = api_image
 
-            # --- STICKERS, PATCHES & GRAFFITIS ---
+            # Stickers, patches, graffiti
             if api_id.startswith("sticker-") or api_id.startswith("patch-") or api_id.startswith("graffiti-"):
                 kit_id = api_id.split("-")[-1]
                 if kit_id.isdigit():
@@ -104,7 +104,7 @@ def fetch_real_names():
                         CATALOG[unique_id] = item_dict
                 continue
 
-            # --- CASES, KEYS & PINS ---
+            # Cases, keys, pins
             if api_id.startswith("crate-") or api_id.startswith("key-") or api_id.startswith("collectible-"):
                 def_index = api_id.split("-")[-1]
                 if def_index.isdigit() and def_index not in CATALOG:
@@ -121,7 +121,7 @@ def fetch_real_names():
                     CATALOG[def_index] = item_dict
                 continue
 
-            # --- MUSIC KITS ---
+            # Music kits
             if api_id.startswith("music_kit-"):
                 music_id = api_id.split("-")[-1]
                 if music_id.isdigit() and f"music_{music_id}" not in CATALOG:
@@ -133,7 +133,7 @@ def fetch_real_names():
                     CATALOG[f"music_{music_id}"] = music_item
                 continue
 
-            # --- AGENTS ---
+            # Agents
             if api_id.startswith("agent-"):
                 agent_id = api_id.split("-")[-1]
                 if agent_id.isdigit() and agent_id not in CATALOG:
@@ -145,7 +145,7 @@ def fetch_real_names():
                     CATALOG[agent_id] = agent_item
                 continue
             
-            # --- SKINS & GLOVES ---
+            # Skins and gloves
             if api_id.startswith("skin-") or api_id.startswith("glove-"):
                 weapon_data = item.get("weapon", {})
                 weapon_name_internal = weapon_data.get("id", "")
@@ -160,35 +160,35 @@ def fetch_real_names():
                         "paint_index": str(paint_val), "category": cat, "image": api_image
                     })
                         
-        print(f"[+] API loaded successfully: Cases, Agents, Musics, Stickers and Skins are ready!")
+        print("API loaded.")
     except Exception as e:
-        print(f"[-] Error loading API: {e}")
+        print(f"Error loading API: {e}")
 
 def parse_items_game():
     global ALL_ITEMS_LIST, CATALOG
     
-    # We use items_game.txt as an ultimate fallback for ANY unknown def_index
+    # Fallback parser for items_game.txt
     if os.path.exists(ITEMS_GAME_PATH):
         try:
             with open(ITEMS_GAME_PATH, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
-                # We only need the main blocks to map ID -> internal_name
+                # Extract ID to internal_name mapping
                 items_section = content.split('"paint_kits"')[0] if '"paint_kits"' in content else content
                 pattern = r'"(\d+)"\s*\{[^{}]*?"name"\s*"([^"]+)"'
                 matches = re.findall(pattern, items_section)
                 
                 for item_id, item_name in matches:
                     def_index_map[item_name.lower()] = item_id
-                    # If this ID is still unknown to our CATALOG, we create a generic fallback entry
+                    # Create fallback entry if unknown
                     if item_id not in CATALOG:
                         CATALOG[item_id] = {
                             "id": item_id, "paint_index": "0", "music_id": "0", "kit_id": "0",
                             "name": item_name, "internal_name": item_name, "category": "Other", "image": ""
                         }
         except Exception as e:
-            print(f"[-] Error parsing items_game.txt: {e}")
+            print(f"Error parsing items_game.txt: {e}")
 
-    # Match Skins to their Base Weapon IDs
+    # Link skins to base weapons
     for skin in API_SKINS:
         weapon_internal = skin["weapon_internal"]
         def_index = def_index_map.get(weapon_internal)
@@ -208,7 +208,7 @@ def parse_items_game():
             ALL_ITEMS_LIST.append(item_dict)
             CATALOG[unique_id] = item_dict
 
-# --- STEAM UI HTML / CSS / JS ---
+# UI Template
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -562,7 +562,7 @@ HTML_TEMPLATE = """
             const isStatTrak = document.getElementById('chkStatTrak').checked;
             const stKills = isStatTrak ? parseInt(document.getElementById('stKillsInput').value) || 0 : 0;
             
-            // Visual feedback on button
+            // Update button state
             let oldText = btn.innerText;
             btn.innerText = "Adding...";
             
@@ -618,7 +618,7 @@ HTML_TEMPLATE = """
 </html>
 """
 
-# --- PYTHON SERVER LOGIC ---
+# Routes
 
 @app.route('/')
 def index():
@@ -680,7 +680,7 @@ def add_item():
             attrs.append(f"\t\t\t\"8\"\t\t\"{wear}\"")
             
         if kit_id and kit_id != "0":
-            # 137 is used for unapplied sticker kits, patches, graffitis
+            # 137: unapplied stickers, patches, graffitis
             attrs.append(f"\t\t\t\"137\"\t\t\"{kit_id}.000000\"")
             
         if music_id and music_id != "0":
