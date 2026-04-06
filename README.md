@@ -1,6 +1,5 @@
 > **Important notice:** This is meant to be used alongside [CSGO GC](https://github.com/mikkokko/csgo_gc).
 > It also uses the item database API from [ByMykel](https://github.com/ByMykel/CSGO-API).
-> Showcase / help discord : https://discord.gg/VCJRHqwt
 
 # CSGO-GC-Iventory-Editor
 A useful webapp built with Flask to add any CS:GO Legacy items to your inventory using the custom Game Coordinator (`csgo_gc`). 
