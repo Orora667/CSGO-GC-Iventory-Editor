@@ -7,6 +7,7 @@ A useful webapp built with Flask to add any CS:GO Legacy items to your inventory
 You can edit just about anything!
  
 # INSTALLATION 
+YOU SHOULD HAVE THE GC PATCH INSTALLED FIRST
 1. Drop `main.py` in the root folder (where your `csgo.exe` is located).
 2. Open a command prompt (cmd) in that folder and enter: `python main.py`
 
